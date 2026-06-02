@@ -12,7 +12,7 @@ import { Shield, Terminal, ShieldAlert } from 'lucide-react';
 
 export default function App() {
   const {
-    profile, lines, currentInputText, isTyping, stateVector, policy, sqs, adminMsg, deceptionLogs, startSimulation
+    profile, lines, currentInputText, isTyping, stateVector, policy, sqs, adminMsg, deceptionLogs, startSimulation, exportCSV, handleManualCommand
   } = useSimulation();
 
   const [activeTab, setActiveTab] = useState<'hacker' | 'admin'>('hacker');
@@ -71,11 +71,11 @@ export default function App() {
 
       <main className="flex-1 flex overflow-hidden">
         <section className={`flex-1 flex flex-col min-w-0 ${activeTab === 'hacker' ? 'block' : 'hidden'}`}>
-          <TerminalView lines={lines} currentInputText={currentInputText} isTyping={isTyping} />
+          <TerminalView lines={lines} currentInputText={currentInputText} isTyping={isTyping} profile={profile} onManualCommand={handleManualCommand} />
         </section>
 
         <section className={`flex-1 bg-[#0a0f1d] flex flex-col p-6 space-y-6 overflow-y-auto min-w-0 ${activeTab === 'admin' ? 'block' : 'hidden'}`}>
-          <AdminConsole stateVector={stateVector} policy={policy} sqs={sqs} adminMsg={adminMsg} profile={profile} deceptionLogs={deceptionLogs} />
+          <AdminConsole stateVector={stateVector} policy={policy} sqs={sqs} adminMsg={adminMsg} profile={profile} deceptionLogs={deceptionLogs} exportCSV={exportCSV} />
         </section>
 
         <Sidebar currentProfile={profile} onSelect={startSimulation} />

@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { StateVector, PolicyAction, AdminMessage, ProfileType } from '../simulation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Download } from 'lucide-react';
 
 interface AdminConsoleProps {
   stateVector: StateVector;
@@ -9,10 +10,12 @@ interface AdminConsoleProps {
   adminMsg: AdminMessage | null;
   profile: ProfileType;
   deceptionLogs: { id: string; command: string; action: string; fakeData: string }[];
+  exportCSV: () => void;
 }
 
-export function AdminConsole({ stateVector, policy, sqs, adminMsg, profile, deceptionLogs }: AdminConsoleProps) {
+export function AdminConsole({ stateVector, policy, sqs, adminMsg, profile, deceptionLogs, exportCSV }: AdminConsoleProps) {
   const logEndRef = useRef<HTMLDivElement>(null);
+  const [showCharts, setShowCharts] = useState(false);
 
   useEffect(() => {
     if (logEndRef.current) {
@@ -24,10 +27,71 @@ export function AdminConsole({ stateVector, policy, sqs, adminMsg, profile, dece
     <>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Strategic Reality Console</h2>
-        <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded text-blue-400 text-[10px] font-bold">
-          STATE: {profile ? `${profile.toUpperCase()}_PROFILE` : 'IDLE_MONITORING'}
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowCharts(!showCharts)}
+            className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-slate-300 text-[10px] font-bold transition-colors uppercase"
+          >
+            {showCharts ? 'Hide Training Graphs' : 'View Training Convergence Graphs'}
+          </button>
+          <button 
+            onClick={exportCSV}
+            disabled={!profile}
+            className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 rounded text-slate-300 text-[10px] font-bold transition-colors"
+          >
+            <Download size={12} />
+            EXPORT .CSV
+          </button>
+          <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded text-blue-400 text-[10px] font-bold">
+            STATE: {profile ? `${profile.toUpperCase()}_PROFILE` : 'IDLE_MONITORING'}
+          </div>
         </div>
       </div>
+
+      {showCharts && (
+        <div className="p-6 bg-[#0d1425] border border-slate-800 rounded-lg mb-6 shadow-xl">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">PPO Hyperparameter Convergence Metrics (Stable Baselines3 Archive)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Chart A: Mean Episode Reward */}
+            <div className="flex flex-col">
+              <div className="text-xs text-slate-400 font-mono mb-3">Mean Episode Reward</div>
+              <div className="h-32 w-full bg-[#070b14] border border-slate-800 rounded relative px-2 py-2">
+                <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="none">
+                  <line x1="0" y1="20" x2="400" y2="20" stroke="#1e293b" strokeDasharray="2" />
+                  <line x1="0" y1="50" x2="400" y2="50" stroke="#1e293b" strokeDasharray="2" />
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#1e293b" strokeDasharray="2" />
+                  <path d="M0,90 C100,90 150,20 200,25 S300,15 400,10" fill="none" stroke="#2563eb" strokeWidth="3" />
+                </svg>
+                <div className="flex justify-between text-[8px] text-slate-600 font-mono mt-1">
+                  <span>0k</span>
+                  <span>10k</span>
+                  <span>20k Timesteps</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Chart B: Policy Loss */}
+            <div className="flex flex-col">
+              <div className="text-xs text-slate-400 font-mono mb-3">Policy Loss</div>
+              <div className="h-32 w-full bg-[#070b14] border border-slate-800 rounded relative px-2 py-2">
+                <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="none">
+                  <line x1="0" y1="20" x2="400" y2="20" stroke="#1e293b" strokeDasharray="2" />
+                  <line x1="0" y1="50" x2="400" y2="50" stroke="#1e293b" strokeDasharray="2" />
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#1e293b" strokeDasharray="2" />
+                  <path d="M0,10 C50,80 150,40 200,85 S300,95 400,95" fill="none" stroke="#ef4444" strokeWidth="3" />
+                </svg>
+                <div className="flex justify-between text-[8px] text-slate-600 font-mono mt-1">
+                  <span>0k</span>
+                  <span>10k</span>
+                  <span>20k Timesteps</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6 flex flex-col flex-1 pb-4">
         {/* Section A: State Vector */}
